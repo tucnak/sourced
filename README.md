@@ -21,10 +21,27 @@ with ALT {
 
 This obviously looks really promisisng when the whole thing comes down to tangled scripts, like vaccinator workaround:
 ```d
+// Vaccinator binds, simplyfing switches:
+//
+// [Z] against bullets
+// [X] against explosives
+// [C] against fire
+//
+// You should not use [R] to change vaccine,
+// since it would break script functionality.
 alias next_vaccine reload
 
-// By default, it's against bullets => no action required.
+// Defaults.
 alias against_bullets ""
+
+alias against_explosives {
+    next_vaccine
+}
+
+alias against_fire {
+    next_vaccine
+    next_vaccine
+}
 
 bind Z {
     against_bullets
@@ -44,38 +61,14 @@ bind Z {
 }
 
 bind X {
-    against_explosives
-
-    alias against_explosives ""
-
-    // It takes a single switch from explosives to fire.
-    alias against_fire {
-        next_vaccine
-    }
-
-    // It takes two switches from explosives to bullets.
-    alias against_bullets {
-        next_vaccine
-        next_vaccine
-    }
+    // ...
 }
 
 bind C {
-    against_fire
-
-    alias against_fire ""
-
-    // It takes a single switch from fire to bullets.
-    alias against_bullets {
-        next_vaccine
-    }
-
-    // It takes two switches from fire to explosives.
-    alias against_explosives {
-        next_vaccine
-        next_vaccine
-    }
+    // ...
 }
+
+echo "~~~ Arrr! Dat healz! ~~~"
 ```
 
 Sourced would also do a type check for every command call and emit a type error, for instance if `alias` command takes more than two parameters.
