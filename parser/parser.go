@@ -13,81 +13,13 @@ func Build(input []byte) ([]byte, error) {
         return []byte{}, err
     }
 
-    return []byte(ast.String()), nil
+    return []byte(ast.Source()), nil
 }
 
-// Statement is a command with some arguments
-type Statement struct {
-	Command string
-	Arguments []Argument
-}
-
-func (s Statement) String() string {
-	self := s.Command
-
-	for _, argument := range s.Arguments {
-		self += " " + argument.String()
-	}
-
-	return self
-}
-
-func (s *Statement) AddArgument(arg Argument) *Argument {
-	s.Arguments = append(s.Arguments, arg)
-
-	return &s.Arguments[len(s.Arguments)-1]
-}
-
-// Sequence represents a sequence of commands
-type Sequence struct {
-	Content []Statement
-	Parent *Sequence // nil for root sequence
-}
-
-func (s Sequence) String() string {
-	var content string
-
-	if s.Parent != nil {
-		length := len(s.Content)
-
-		if length > 0 {
-			content += s.Content[0].String()
-		}
-
-		// For inner scopes
-		for i := 1; i < length; i++ {
-			content += ";" + s.Content[i].String()
-		}
-
-		content = "\"" + content + "\""
-	} else {
-		// For outer scopes
-		for _, statement := range s.Content {
-			content += statement.String() + "\n"
-		}
-	}
-
-	return content
-}
-
-func (s *Sequence) Last() *Statement {
-	if len(s.Content) == 0 {
-		return nil
-	}
-
-	return &s.Content[len(s.Content)-1]
-}
-
-func (s *Sequence) Add(command string) *Statement {
-	s.Content = append(s.Content, Statement{Command: command})
-
-	return &s.Content[len(s.Content)-1]
-}
-
-//go:generate stringer -type=Scope
-type Scope int
+//go:generate stringer -type=scope
+type scope int
 const (
-	OUTSCOPED Scope = iota
+	OUTSCOPED scope = iota
 	IN_COMMENT
 	READING_COMMAND
 	READING_ARGUMENTS
@@ -102,7 +34,7 @@ type parsingCtx struct {
 	index int
 	symbol rune
 
-	scope Scope
+	scope scope
 
 	head, root *Sequence
 
