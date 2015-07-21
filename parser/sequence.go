@@ -6,8 +6,8 @@ type Sequence struct {
 	Parent  *Sequence // nil for root sequence
 }
 
-// Source returns an actual Source-compatible script source.
-func (s Sequence) Source() string {
+// String returns an actual Source-compatible script source.
+func (s Sequence) String() (string, error) {
 	var content string
 
 	if s.Parent != nil {
@@ -15,11 +15,20 @@ func (s Sequence) Source() string {
 
 		length := len(s.Content)
 		if length > 0 {
-			content += s.Content[0].Source()
+			repr, err := s.Content[0].String()
+			if err != nil {
+				return "", err
+			}
+
+			content += repr
 		}
 
 		for i := 1; i < length; i++ {
-			content += ";" + s.Content[i].Source()
+			repr, err := s.Content[i].String()
+			if err != nil {
+				return "", err
+			}
+			content += ";" + repr
 		}
 
 		content = "\"" + content + "\""
@@ -27,11 +36,42 @@ func (s Sequence) Source() string {
 		// For outer scopes
 
 		for _, statement := range s.Content {
-			content += statement.Source() + "\n"
+			repr, err := statement.String()
+			if err != nil {
+				return "", err
+			}
+
+			content += repr + "\n"
 		}
 	}
 
-	return content
+	return content, nil
+}
+
+func (s Sequence) Undo() (string, error) {
+	var content string
+
+	length := len(s.Content)
+	if length > 0 {
+		repr, err := s.Content[0].Undo()
+		if err != nil {
+			return "", err
+		}
+
+		content += repr
+	}
+
+	for i := 1; i < length; i++ {
+		repr, err := s.Content[i].Undo()
+		if err != nil {
+			return "", err
+		}
+		content += ";" + repr
+	}
+
+	content = "\"" + content + "\""
+
+	return content, nil
 }
 
 // Last returns the last statement in the chain.

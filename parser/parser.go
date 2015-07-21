@@ -13,7 +13,12 @@ func Build(input []byte) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	return []byte(ast.Source()), nil
+	output, err := ast.String()
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return []byte(output), nil
 }
 
 //go:generate stringer -type=scope
@@ -42,7 +47,7 @@ type parsingCtx struct {
 	command, word, argstring, number string
 }
 
-func Parse(input []byte) (*Sequence, *ParseError) {
+func Parse(input []byte) (*Sequence, error) {
 	ctx := &parsingCtx{}
 	ctx.input = &input
 	ctx.root = &Sequence{}
@@ -65,6 +70,17 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 
 		switch symbol {
 		case '\n':
+			if ctx.scope == READING_COMMAND {
+				statement := ctx.head.Add(ctx.command)
+				statement.line = ctx.line
+
+				ctx.scope = OUTSCOPED
+				ctx.line++
+				ctx.pos = 0
+
+				continue
+			}
+
 			ctx.line++
 			ctx.pos = 0
 
@@ -114,12 +130,15 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 				return ctx.root, err
 			}
 
+		case '\t':
+			continue
+
 		case '{':
 			if ctx.scope != READING_ARGUMENTS {
 				return ctx.root, &ParseError{
-					line:     ctx.line,
-					position: ctx.pos,
-					message:  "Opening a scope in inappropriate place",
+					Line:     ctx.line,
+					Position: ctx.pos,
+					Message:  "Opening a scope in inappropriate place",
 				}
 			}
 
@@ -131,9 +150,9 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 		case '}':
 			if ctx.head.Parent == nil {
 				return ctx.root, &ParseError{
-					line:     ctx.line,
-					position: ctx.pos,
-					message:  "Trying to close a non-existing scope",
+					Line:     ctx.line,
+					Position: ctx.pos,
+					Message:  "Trying to close a non-existing scope",
 				}
 			}
 
@@ -148,9 +167,9 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 			if ctx.scope == OUTSCOPED {
 				if !unicode.IsLetter(symbol) {
 					return ctx.root, &ParseError{
-						line:     ctx.line,
-						position: ctx.pos,
-						message:  "Command starts with a non-letter character",
+						Line:     ctx.line,
+						Position: ctx.pos,
+						Message:  "Command starts with a non-letter character",
 					}
 				}
 
@@ -204,9 +223,9 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 				}
 
 				return ctx.root, &ParseError{
-					line:     ctx.line,
-					position: ctx.pos,
-					message:  "Unexpected non-digit character in the number parameter",
+					Line:     ctx.line,
+					Position: ctx.pos,
+					Message:  "Unexpected non-digit character in the number parameter",
 				}
 			}
 
@@ -217,9 +236,9 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 				}
 
 				return ctx.root, &ParseError{
-					line:     ctx.line,
-					position: ctx.pos,
-					message:  "Unexpected non-letter character in the word parameter",
+					Line:     ctx.line,
+					Position: ctx.pos,
+					Message:  "Unexpected non-letter character in the word parameter",
 				}
 			}
 		}
