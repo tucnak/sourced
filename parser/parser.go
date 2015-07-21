@@ -246,6 +246,14 @@ func Parse(input []byte) (*Sequence, error) {
 		ctx.pos++
 	}
 
+	if ctx.scope != OUTSCOPED {
+		return ctx.root, &ParseError{
+			Line:     ctx.line,
+			Position: ctx.pos,
+			Message:  "Unexpected EOF",
+		}
+	}
+
 	return ctx.root, nil
 }
 
