@@ -6,5 +6,5 @@ package main
 import "fmt"
 
 func main() {
-    fmt.Println("seems legit")
+	fmt.Println("seems legit")
 }
