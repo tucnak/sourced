@@ -18,14 +18,14 @@ func Build(input []byte) ([]byte, error) {
 
 // Statement is a command with some arguments
 type Statement struct {
-	command string
-	arguments []Argument
+	Command string
+	Arguments []Argument
 }
 
 func (s Statement) String() string {
-	self := s.command
+	self := s.Command
 
-	for _, argument := range s.arguments {
+	for _, argument := range s.Arguments {
 		self += " " + argument.String()
 	}
 
@@ -33,36 +33,36 @@ func (s Statement) String() string {
 }
 
 func (s *Statement) AddArgument(arg Argument) *Argument {
-	s.arguments = append(s.arguments, arg)
+	s.Arguments = append(s.Arguments, arg)
 
-	return &s.arguments[len(s.arguments)-1]
+	return &s.Arguments[len(s.Arguments)-1]
 }
 
 // Sequence represents a sequence of commands
 type Sequence struct {
-	content []Statement
-	parent *Sequence // nil for root sequence
+	Content []Statement
+	Parent *Sequence // nil for root sequence
 }
 
 func (s Sequence) String() string {
 	var content string
 
-	if s.parent != nil {
-		length := len(s.content)
+	if s.Parent != nil {
+		length := len(s.Content)
 
 		if length > 0 {
-			content += s.content[0].String()
+			content += s.Content[0].String()
 		}
 
 		// For inner scopes
 		for i := 1; i < length; i++ {
-			content += ";" + s.content[i].String()
+			content += ";" + s.Content[i].String()
 		}
 
 		content = "\"" + content + "\""
 	} else {
 		// For outer scopes
-		for _, statement := range s.content {
+		for _, statement := range s.Content {
 			content += statement.String() + "\n"
 		}
 	}
@@ -71,17 +71,17 @@ func (s Sequence) String() string {
 }
 
 func (s *Sequence) Last() *Statement {
-	if len(s.content) == 0 {
+	if len(s.Content) == 0 {
 		return nil
 	}
 
-	return &s.content[len(s.content)-1]
+	return &s.Content[len(s.Content)-1]
 }
 
 func (s *Sequence) Add(command string) *Statement {
-	s.content = append(s.content, Statement{command: command})
+	s.Content = append(s.Content, Statement{Command: command})
 
-	return &s.content[len(s.content)-1]
+	return &s.Content[len(s.Content)-1]
 }
 
 //go:generate stringer -type=Scope
@@ -191,12 +191,12 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 			}
 
 			last := ctx.head.Last()
-			scope := &Sequence{parent:ctx.head}
+			scope := &Sequence{Parent:ctx.head}
 			last.AddArgument(scope)
 			ctx.head = scope
 
 		case '}':
-			if ctx.head.parent == nil {
+			if ctx.head.Parent == nil {
 				return ctx.root, &ParseError{
 					line: ctx.line,
 					position: ctx.pos,
@@ -204,7 +204,7 @@ func Parse(input []byte) (*Sequence, *ParseError) {
 				}
 			}
 
-			ctx.head = ctx.head.parent
+			ctx.head = ctx.head.Parent
 
 		default:
 			if symbol == '/' && relativeTo(ctx, 1) == '/' {
