@@ -165,7 +165,7 @@ func Parse(input []byte) (*Sequence, error) {
 			}
 
 			if ctx.scope == OUTSCOPED {
-				if !unicode.IsLetter(symbol) {
+				if !isLegitCharForName(symbol) {
 					return ctx.root, &ParseError{
 						Line:     ctx.line,
 						Position: ctx.pos,
@@ -253,9 +253,10 @@ func Parse(input []byte) (*Sequence, error) {
 func isLegitCharForName(symbol rune) bool {
 	isLetter := unicode.IsLetter(symbol)
 	isUnderscore := (symbol == '_')
+	isSwitch := ((symbol == '+') || (symbol == '-'))
 	isNumber := unicode.IsNumber(symbol)
 
-	if isLetter || isUnderscore || isNumber {
+	if isLetter || isUnderscore || isSwitch || isNumber {
 		return true
 	}
 
@@ -284,10 +285,15 @@ func parseWhileReadingString(ctx *parsingCtx) *ParseError {
 	symbol := ctx.symbol
 
 	if symbol == '\\' {
+		if relativeTo(ctx, -1) != '\\' {
+			return nil
+		}
+
+		ctx.argstring += "\\"
 		return nil
 	}
 
-	if ctx.index > 0 && relativeTo(ctx, -1) == '\\' {
+	if ctx.index > 0 && relativeTo(ctx, -1) == '\\' && relativeTo(ctx, -2) != '\\' {
 		if symbol == '"' {
 			ctx.argstring += "\""
 		} else if symbol == 'n' {
@@ -297,7 +303,6 @@ func parseWhileReadingString(ctx *parsingCtx) *ParseError {
 		}
 
 		return nil
-	} else {
 	}
 
 	if symbol == '"' {
