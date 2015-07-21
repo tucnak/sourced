@@ -11,7 +11,7 @@ bind ALT alt_mod
 ```
 
 Now take a look at solution Sourced provides:
-```
+```d
 with ALT {
     bind F {
         say "hello"
@@ -20,7 +20,7 @@ with ALT {
 ```
 
 This obviously looks really promisisng when the whole thing comes down to tangled scripts, like vaccinator workaround:
-```
+```d
 alias next_vaccine reload
 
 // By default, it's against bullets => no action required.
