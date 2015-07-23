@@ -100,7 +100,7 @@ func generateForWith(st *Statement) (string, error) {
 
 	alias_plus := fmt.Sprintf("alias +with_%s %s", key, enable)
 	alias_minus := fmt.Sprintf("alias -with_%s %s", key, disable)
-	bind := fmt.Sprintf("bind %s with_%s", key, key)
+	bind := fmt.Sprintf("bind %s +with_%s", key, key)
 
 	return fmt.Sprintf("%s\n%s\n%s", alias_plus, alias_minus, bind), nil
 }

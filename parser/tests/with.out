@@ -1,3 +1,3 @@
 alias +with_ALT "alias alright "say "hello"";bind H "alright""
 alias -with_ALT "unalias alright;unbind H"
-bind ALT with_ALT
+bind ALT +with_ALT
