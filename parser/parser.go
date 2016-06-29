@@ -5,6 +5,24 @@ import (
 	"unicode"
 )
 
+var Keys map[rune]string
+
+func init() {
+	Keys = map[rune]string{
+		'-':  "MINUS",
+		'+':  "PLUS",
+		'[':  "LBRACKET",
+		']':  "RBRACKER",
+		';':  "SEMICOLON",
+		',':  "COMMA",
+		'.':  "DOT",
+		'/':  "SLASH",
+		'\\': "BACKSLASH",
+		'\'': "EMPH",
+		'`':  "APH",
+	}
+}
+
 // Build tries to generate a legit script source
 // for Source engine.
 func Build(input []byte) ([]byte, error) {
@@ -261,7 +279,7 @@ func Parse(input []byte) (*Sequence, error) {
 func isLegitCharForName(symbol rune) bool {
 	isLetter := unicode.IsLetter(symbol)
 	isUnderscore := (symbol == '_')
-	isSwitch := ((symbol == '+') || (symbol == '-'))
+	isSwitch := ((symbol == '+') || (symbol == '-') || (symbol == '`'))
 	isNumber := unicode.IsNumber(symbol)
 
 	if isLetter || isUnderscore || isSwitch || isNumber {

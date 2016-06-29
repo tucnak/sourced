@@ -1,1 +1,1 @@
-bind ALT "say "Classic Source bind style";reload"
+alias bind_ALT "say "Classic Source bind style";reload";bind ALT bind_ALT

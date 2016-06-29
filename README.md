@@ -3,71 +3,69 @@
 
 Writing complex scripts for games like Team Fortress 2 usually might be really frustrating, especially when it comes down to sophisticated binds. Source engine also does not provide any sort of type checks, so scripts are hard to write, debug and maintain.
 
-A common, yet complex routine is support of multi-key binds. For example, saying "hello" in team chat with <Alt+F> keyboard combination would require:
-```
-alias +alt_mod "bind F "say "hello"""
-alias -alt_mod "unbind F"
-bind ALT alt_mod
-```
-
-Now take a look at solution Sourced provides:
+Sourced lets you write some good looking binds and produces valid output. This
 ```d
-with ALT {
-    bind F {
-        say "hello"
-    }
+// Masking uber.
+bind R {
+	say_team "~~~ Ready ~~~"
+	voicemenu 1 1
 }
+
+// Faking uber.
+bind F {
+	say_team "~~~ Faked ~~~"
+	voicemenu 1 7
+}
+
+// Spawn forwarding.
+alias switch_random {
+	join_class random
+	bind BACKSPACE switch_medic
+}
+
+alias switch_medic {
+	join_class medic
+	bind BACKSPACE switch_random
+	say_team "~~~ Switched spawns ~~~"
+}
+
+bind BACKSPACE switch_random
+
+bind K {
+	slot2
+	kill
+}
+
+// Altering between heal guns.
+bind "[" {
+	load_itempreset 0
+	say_team "~~~ Switched to uber ~~~"
+}
+
+bind "]" {
+	load_itempreset 1
+	say_team "~~~ Took critz ~~~"
+}
+
+bind "\\" {
+	load_itempreset 2
+	say_team "~~~ Took vaccinator ~~~"
+}
+
+echo "~~~ Arrr! Dat healz! ~~~"
 ```
 
-This obviously looks really promisisng when the whole thing comes down to tangled scripts, like vaccinator workaround:
+becomes this:
 ```d
-// Vaccinator binds, simplyfing switches:
-//
-// [Z] against bullets
-// [X] against explosives
-// [C] against fire
-//
-// You should not use [R] to change vaccine,
-// since it would break script functionality.
-alias next_vaccine reload
-
-// Defaults.
-alias against_bullets ""
-
-alias against_explosives {
-    next_vaccine
-}
-
-alias against_fire {
-    next_vaccine
-    next_vaccine
-}
-
-bind Z {
-    against_bullets
-
-    alias against_bullets ""
-
-    // It takes one switch from bullets to explosives.
-    alias against_explosives {
-        next_vaccine
-    }
-
-    // It takes two switches from bullets to fire.
-    alias against_fire {
-        next_vaccine
-        next_vaccine
-    }
-}
-
-bind X {
-    // ...
-}
-
-bind C {
-    // ...
-}
-
+alias bind_R "say_team "~~~ Ready ~~~";voicemenu 1 1";bind R bind_R
+alias bind_F "say_team "~~~ Faked ~~~";voicemenu 1 7";bind F bind_F
+alias switch_random "join_class random;alias bind_BACKSPACE switch_medic;bind BACKSPACE bind_BACKSPACE"
+alias switch_medic "join_class medic;alias bind_BACKSPACE switch_random;bind BACKSPACE bind_BACKSPACE;say_team "~~~ Switched spawns ~~~""
+alias bind_BACKSPACE switch_random;bind BACKSPACE bind_BACKSPACE
+alias bind_K "slot2;kill";bind K bind_K
+alias bind_LBRACKET "load_itempreset 0;say_team "~~~ Switched to uber ~~~"";bind "[" bind_LBRACKET
+alias bind_RBRACKER "load_itempreset 1;say_team "~~~ Took critz ~~~"";bind "]" bind_RBRACKER
+alias bind_BACKSLASH "load_itempreset 2;say_team "~~~ Took vaccinator ~~~"";bind "\" bind_BACKSLASH
 echo "~~~ Arrr! Dat healz! ~~~"
 ```
 
